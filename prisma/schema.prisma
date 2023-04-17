@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator zod {
+  provider               = "zod-prisma-types"
+  output                 = "./zod"
+  createInputTypes       = false
+  addInputTypeValidation = false
+}
+
+// to create prisma migration run the following command
+// npx prisma migrate dev --name init
+
+// to migrate the database run the following command
+// npx prisma migrate deploy
+
+// to generate prisma client run the following command
+// npx prisma generate
+
+model User {
+  id             Int           @id @default(autoincrement())
+  phone          String        @unique @db.VarChar(255)
+  name           String        @db.VarChar(255)
+  surname        String        @db.VarChar(255)
+  hashedPassword String        @db.VarChar(255)
+  saltPassword   String        @db.VarChar(32)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  photos         Photo[]
+  sharePhotos    SharePhoto[]
+  userSessions   UserSession[]
+}
+
+model UserSession {
+  id         Int      @id @default(autoincrement())
+  clientName String   @db.VarChar(255)
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  createdAt  DateTime @default(now())
+}
+
+model Photo {
+  id          Int          @id @default(autoincrement())
+  filename    String       @db.VarChar(255)
+  photoname   String       @db.VarChar(255)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  userId      Int
+  user        User         @relation(fields: [userId], references: [id])
+  sharePhotos SharePhoto[]
+}
+
+model SharePhoto {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  photoId   Int
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  photo     Photo    @relation(fields: [photoId], references: [id])
+}
